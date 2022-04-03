@@ -17,7 +17,7 @@ const calculateProfit = (prod) => {
 	const taxableQuan = Math.max(prod.quantitySold - 10, 0);
 	const taxFreeProf = taxFreeQuan * (prod.soldPrice - prod.costToBusiness);
 	const taxableProf =
-		taxableQuan * (prod.soldPrice - prod.costToBusiness) * 0.92;
+		taxableQuan * (prod.soldPrice - prod.costToBusiness) * (1 - TAX_RATE);
 	return formCur(taxFreeProf + taxableProf);
 };
 
@@ -25,14 +25,19 @@ function YourSolution() {
 	const [products, setProducts] = useState([]);
 	const [total, setTotal] = useState(0);
 	const [page, setPage] = useState(0);
+	const [isError, setIsError] = useState(false);
 
 	useEffect(() => {
+		setIsError(false);
 		fetch(API_URL + `?page=${page}`)
 			.then((response) => response.json())
 			.then((data) => {
 				setProducts(data.products);
 				setTotal(data.count);
 				console.log(data);
+			})
+			.catch(() => {
+				setIsError(true);
 			});
 	}, [page]);
 
@@ -51,19 +56,21 @@ function YourSolution() {
 					</tr>
 				</thead>
 				<tbody>
-					{products.map((product, index) => {
-						return (
-							<tr key={index}>
-								<td>{product.id}</td>
-								<td>{product.brand}</td>
-								<td>{product.name}</td>
-								<td>{product.quantitySold}</td>
-								<td>{formCur(product.soldPrice)}</td>
-								<td>{formCur(product.costToBusiness)}</td>
-								<td>{calculateProfit(product)}</td>
-							</tr>
-						);
-					})}
+					{isError
+						? null
+						: products.map((product, index) => {
+								return (
+									<tr key={index}>
+										<td>{product.id}</td>
+										<td>{product.brand}</td>
+										<td>{product.name}</td>
+										<td>{product.quantitySold}</td>
+										<td>{formCur(product.soldPrice)}</td>
+										<td>{formCur(product.costToBusiness)}</td>
+										<td>{calculateProfit(product)}</td>
+									</tr>
+								);
+						  })}
 				</tbody>
 			</table>
 			<button
